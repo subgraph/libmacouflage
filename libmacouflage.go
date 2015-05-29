@@ -15,6 +15,13 @@ const SIOCETHTOOL = 0x8946
 const ETHTOOL_GPERMADDR = 0x00000020
 const IFHWADDRLEN = 6
 
+type Mode struct {
+	name string
+	help string
+	flagShort string
+	flagLong string
+}
+
 // TODO: Ad-hoc structs that work, fix
 type NetInfo struct {
 	name [16]byte
@@ -31,6 +38,30 @@ type EthtoolPermAddr struct {
 	cmd uint32
 	size uint32
 	data [6]byte
+}
+
+func init() {
+	Modes := make(map[string]Mode)
+	Modes["SPECIFIC"] = Mode{"Specific",
+		"Set the MAC XX:XX:XX:XX:XX:XX",
+		"m",
+		"mac"}
+	Modes["RANDOM"] = Mode{"Random",
+		"Set fully random MAC",
+		"r",
+		"random"}
+	Modes["SAMEVENDOR"] = Mode{"Same Vendor",
+		"Don't change the vendor bytes",
+		"e",
+		"ending"}
+	Modes["ANOTHER"] = Mode{"Another",
+		"Set random vendor MAC of the same kind",
+		"a",
+		"another"}
+	Modes["ANY"] = Mode{"Any",
+		"Set random vendor MAC of any kind",
+        "A",
+		"any"}
 }
 
 func GetCurrentMac(name string) (mac net.HardwareAddr, err error) {
