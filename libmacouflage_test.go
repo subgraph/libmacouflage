@@ -174,6 +174,20 @@ func Test_SpoofMacRandom_1(t *testing.T) {
 		t.Errorf("SpoofMacRandom_1 error: MAC address not changed for %s\n", ifaces[0].Name)
 	}
 }
+
+func Test_SpoofMacSameVendor_1(t *testing.T) {
+	ifaces, err := GetInterfaces()
+	changed, err := SpoofMacSameVendor(ifaces[0].Name, true)
+	if err != nil {
+		t.Error(err)
+	}
+	if changed {
+		fmt.Printf("SpoofMacSameVendor_1 result: MAC address successfully changed for %s\n", ifaces[0].Name)
+	} else {
+		t.Errorf("SpoofMacSameVendor_1 error: MAC address not changed for %s\n", ifaces[0].Name)
+	}
+}
+
 func Test_RevertMac_1(t *testing.T) {
 	ifaces, err := GetInterfaces()
 	changed, _ := MacChanged(ifaces[0].Name)
