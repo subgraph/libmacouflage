@@ -159,6 +159,23 @@ func SetMac(name string, mac string) (err error) {
 	return
 }
 
+func SpoofMacRandom(name string, bia bool) (changed bool, err error) {
+	bytes := []byte{0, 0, 0, 0, 0, 0}
+	mac, err := RandomizeMac(bytes, 0, bia)
+	if err != nil {
+		return
+	}
+	err = SetMac(name, mac.String())
+	if err != nil {
+		return
+	}
+	changed, err = MacChanged(name)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func CompareMacs(first net.HardwareAddr, second net.HardwareAddr) (same bool) {
 	same = first.String() == second.String()
 	return

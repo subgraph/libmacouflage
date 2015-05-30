@@ -131,11 +131,11 @@ func Test_SetMac_1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	result, err := MacChanged(ifaces[0].Name)
+	changed, err := MacChanged(ifaces[0].Name)
 	if err != nil {
 		t.Error(err)
 	}
-	if result {
+	if changed {
 		fmt.Printf("SetMac_1 result: MAC address successfully changed for %s\n", ifaces[0].Name)
 	} else {
 		t.Errorf("SetMac_1 error: MAC address not changed for %s\n", ifaces[0].Name)
@@ -154,18 +154,30 @@ func Test_SetMac_2(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	result, err := MacChanged(ifaces[0].Name)
-	if result {
+	changed, err := MacChanged(ifaces[0].Name)
+	if changed {
 		fmt.Printf("SetMac_2 result: MAC address successfully changed for %s\n", ifaces[0].Name)
 	} else {
 		t.Errorf("SetMac_2 error: MAC address not changed for %s\n", ifaces[0].Name)
 	}
 }
 
+func Test_SpoofMacRandom_1(t *testing.T) {
+	ifaces, err := GetInterfaces()
+	changed, err := SpoofMacRandom(ifaces[0].Name, true)
+	if err != nil {
+		t.Error(err)
+	}
+	if changed {
+		fmt.Printf("SpoofMacRandom_1 result: MAC address successfully changed for %s\n", ifaces[0].Name)
+	} else {
+		t.Errorf("SpoofMacRandom_1 error: MAC address not changed for %s\n", ifaces[0].Name)
+	}
+}
 func Test_RevertMac_1(t *testing.T) {
 	ifaces, err := GetInterfaces()
-	result, _ := MacChanged(ifaces[0].Name)
-	if !result {
+	changed, _ := MacChanged(ifaces[0].Name)
+	if !changed {
 		bytes := []byte{0, 0, 0, 0, 0, 0}
 		mac, err := RandomizeMac(bytes, 0, true)
 		if err != nil {
@@ -180,8 +192,8 @@ func Test_RevertMac_1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	result, err = MacChanged(ifaces[0].Name)
-	if !result {
+	changed, err = MacChanged(ifaces[0].Name)
+	if !changed {
 		fmt.Printf("RevertMac_1 result: MAC address successfully reverted for %s\n", ifaces[0].Name)
 	} else {
 		t.Errorf("RevertMac_1 error: MAC address not changed for %s\n", ifaces[0].Name)
