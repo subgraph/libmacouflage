@@ -8,6 +8,7 @@ import (
 	"unsafe"
 	"crypto/rand"
 	"os/user"
+	"encoding/json"
 )
 
 const SIOCSIFHWADDR = 0x8924
@@ -40,6 +41,18 @@ type EthtoolPermAddr struct {
 	data [6]byte
 }
 
+type Oui struct {
+	VendorPrefix string	`json:"vendor_prefix"`
+	Popular bool		`json:"is_popular"`
+	Vendor string		`json:"vendor_name"`
+	Devices []Device	`json:"devices"`
+}
+
+type Device struct {
+	DeviceType string	`json:"device_type"`
+	DeviceName string	`json:"device_name"`
+}
+
 func init() {
 	Modes := make(map[string]Mode)
 	Modes["SPECIFIC"] = Mode{"Specific",
@@ -62,6 +75,18 @@ func init() {
 		"Set random vendor MAC of any kind",
         "A",
 		"any"}
+
+	OuiData, err := Asset("data/ouis.json")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	var oui []Oui
+	err = json.Unmarshal(OuiData, &oui)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func GetCurrentMac(name string) (mac net.HardwareAddr, err error) {
@@ -276,3 +301,5 @@ func RunningAsRoot() (result bool, err error) {
 	}
 	return 
 }
+
+
