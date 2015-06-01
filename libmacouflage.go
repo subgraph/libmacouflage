@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"os/user"
 	"encoding/json"
+	"strings"
 )
 
 const SIOCSIFHWADDR = 0x8924
@@ -110,6 +111,10 @@ func GetAllCurrentMacs() (macs map[string]string, err error) {
 func GetInterfaces() (ifaces []net.Interface, err error) {
 	allIfaces, err := net.Interfaces()
 	for _, iface := range allIfaces {
+		// Skip tun and tap interfaces
+		if strings.HasPrefix(iface.Name, "tun") || strings.HasPrefix(iface.Name, "tap") {
+			continue
+		}
 		// Skip Loopback interfaces
 		if iface.Flags&net.FlagLoopback == 0 {
 			ifaces = append(ifaces, iface)
