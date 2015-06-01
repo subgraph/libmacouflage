@@ -36,10 +36,25 @@ which is why it is better to enable the "burned-in address" setting to avoid
 these ranges, however, specific tests that do not set "burned-in address" may
 fail as a result
 
-### How to test
+### How to test with a specific network interface
+
+Take down the network interface (eth0 is used as an example):
+```
+$ sudo ip link set eth0 down
+```
+
+Then run the tests (interface is specified via the TEST_INTERFACE environment
+variable):
+```
+$ sudo TEST_INTERFACE=eth0 go test
+```
+
+### How to test with "any" network interface (test suite just chooses the first found)
+
 For each network interface:
 ```
 $ sudo ip link set <interface> down
+```
 
 Then run the tests:
 ```

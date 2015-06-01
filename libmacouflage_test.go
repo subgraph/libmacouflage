@@ -3,7 +3,20 @@ package libmacouflage
 import (
 	"testing"
 	"fmt"
+	"os"
 )
+
+var testInterface = os.Getenv("TEST_INTERFACE")
+
+func GetTestInterface() (iface string) {
+	if testInterface != "" {
+		iface = testInterface
+	} else {
+		ifaces, _ := GetInterfaces()
+		iface = ifaces[0].Name
+	}
+	return
+}
 
 func Test_GetCurrentMac_1(t *testing.T) {
 	_, err := GetCurrentMac("badinterface")
@@ -17,11 +30,11 @@ func Test_GetCurrentMac_1(t *testing.T) {
 }
 
 func Test_GetCurrentMac_2(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	_, err = GetCurrentMac(ifaces[0].Name)
+	iface := GetTestInterface()
+	_, err := GetCurrentMac(iface)
 	if err != nil {
 		t.Errorf("GetCurrentMac_2 for existing interface name %s failed: %s\n",
-		ifaces[0].Name, err)
+		iface, err)
 	}
 }
 
@@ -48,11 +61,11 @@ func Test_GetPermanentMac_1(t *testing.T) {
 }
 
 func Test_GetPermanentMac_2(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	_, err = GetPermanentMac(ifaces[0].Name)
+	iface := GetTestInterface()
+	_, err := GetPermanentMac(iface)
 	if err != nil {
 		t.Errorf("GetPermanentMac_2 for existing interface name %s failed: %s\n",
-		ifaces[0].Name, err)
+		iface, err)
 	}
 }
 
@@ -67,13 +80,13 @@ func Test_MacChanged_1(t *testing.T) {
 }
 
 func Test_MacChanged_2(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	result, err := MacChanged(ifaces[0].Name)
+	iface := GetTestInterface()
+	result, err := MacChanged(iface)
 	if err != nil {
 		t.Errorf("MacChanged_2 for existing interface name %s failed: %s\n",
-		ifaces[0].Name, err)
+		iface, err)
 	}
-	fmt.Printf("MacChanged_2 result: %s has changed = %t\n", ifaces[0].Name,
+	fmt.Printf("MacChanged_2 result: %s has changed = %t\n", iface,
 	result)
 }
 
@@ -87,13 +100,14 @@ func Test_IsIfUp_1(t *testing.T) {
 }
 
 func Test_IsIfUp_2(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	result, err := IsIfUp(ifaces[0].Name)
+	iface := GetTestInterface()
+	result, err := IsIfUp(iface)
 	if err != nil {
 		t.Errorf("IsIfUp_2 for existing interface name %s failed: %s\n",
-		ifaces[0].Name, err)
+		iface, err)
+		return
 	}
-	fmt.Printf("IsIfUp_2 result: %s is up = %t\n", ifaces[0].Name, result)
+	fmt.Printf("IsIfUp_2 result: %s is up = %t\n", iface, result)
 }
 
 func Test_RandomizeMac_1(t *testing.T) {
@@ -121,8 +135,8 @@ func Test_RunningAsRoot_1(t *testing.T) {
 }
 
 func Test_SetMac_1(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	oldMac, err := GetCurrentMac(ifaces[0].Name)
+	iface := GetTestInterface()
+	oldMac, err := GetCurrentMac(iface)
 	if err != nil {
 		t.Error(err)
 		return
@@ -133,23 +147,23 @@ func Test_SetMac_1(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = SetMac(ifaces[0].Name, newMac.String())
+	err = SetMac(iface, newMac.String())
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	same := CompareMacs(oldMac, newMac)
 	if !same {
-		fmt.Printf("SetMac_1 result: MAC address successfully changed for %s\n", ifaces[0].Name)
+		fmt.Printf("SetMac_1 result: MAC address successfully changed for %s\n", iface)
 	} else {
-		t.Errorf("SetMac_1 error: MAC address not changed for %s\n", ifaces[0].Name)
+		t.Errorf("SetMac_1 error: MAC address not changed for %s\n", iface)
 	}
 }
 
 
 func Test_SetMac_2(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	oldMac, err := GetCurrentMac(ifaces[0].Name)
+	iface := GetTestInterface()
+	oldMac, err := GetCurrentMac(iface)
 	if err != nil {
 		t.Error(err)
 		return
@@ -160,92 +174,95 @@ func Test_SetMac_2(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = SetMac(ifaces[0].Name, newMac.String())
+	err = SetMac(iface, newMac.String())
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	same := CompareMacs(oldMac, newMac)
 	if !same {
-		fmt.Printf("SetMac_2 result: MAC address successfully changed for %s\n", ifaces[0].Name)
+		fmt.Printf("SetMac_2 result: MAC address successfully changed for %s\n", iface)
 	} else {
-		t.Errorf("SetMac_2 error: MAC address not changed for %s\n", ifaces[0].Name)
+		t.Errorf("SetMac_2 error: MAC address not changed for %s\n", iface)
 	}
 }
 
 func Test_SpoofMacRandom_1(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	oldMac, err := GetCurrentMac(ifaces[0].Name)
+	iface := GetTestInterface()
+	oldMac, err := GetCurrentMac(iface)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	_, err = SpoofMacRandom(ifaces[0].Name, true)
+	_, err = SpoofMacRandom(iface, true)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	newMac, err := GetCurrentMac(ifaces[0].Name)
+	newMac, err := GetCurrentMac(iface)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	same := CompareMacs(oldMac, newMac)
 	if !same {
-		fmt.Printf("SpoofMacRandom_1 result: MAC address successfully changed for %s\n", ifaces[0].Name)
+		fmt.Printf("SpoofMacRandom_1 result: MAC address successfully changed for %s\n", iface)
 	} else {
-		t.Errorf("SpoofMacRandom_1 error: MAC address not changed for %s\n", ifaces[0].Name)
+		t.Errorf("SpoofMacRandom_1 error: MAC address not changed for %s\n", iface)
 	}
 }
 
 func Test_SpoofMacSameVendor_1(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	oldMac, err := GetCurrentMac(ifaces[0].Name)
+	iface := GetTestInterface()
+	oldMac, err := GetCurrentMac(iface)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	_, err = SpoofMacSameVendor(ifaces[0].Name, true)
+	_, err = SpoofMacSameVendor(iface, true)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	newMac, err := GetCurrentMac(ifaces[0].Name)
+	newMac, err := GetCurrentMac(iface)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	same := CompareMacs(oldMac, newMac)
 	if !same {
-		fmt.Printf("SpoofMacSameVendor_1 result: MAC address successfully changed for %s\n", ifaces[0].Name)
+		fmt.Printf("SpoofMacSameVendor_1 result: MAC address successfully changed for %s\n", iface)
 	} else {
-		t.Errorf("SpoofMacSameVendor_1 error: MAC address not changed for %s\n", ifaces[0].Name)
+		t.Errorf("SpoofMacSameVendor_1 error: MAC address not changed for %s\n", iface)
 	}
 }
 
 func Test_RevertMac_1(t *testing.T) {
-	ifaces, err := GetInterfaces()
-	changed, _ := MacChanged(ifaces[0].Name)
+	iface := GetTestInterface()
+	changed, _ := MacChanged(iface)
 	if !changed {
 		bytes := []byte{0, 0, 0, 0, 0, 0}
 		mac, err := RandomizeMac(bytes, 0, true)
 		if err != nil {
 			t.Error(err)
+			return
 		}
-		err = SetMac(ifaces[0].Name, mac.String())
+		err = SetMac(iface, mac.String())
 		if err != nil {
 			t.Error(err)
+			return
 		}
 	}
-	err = RevertMac(ifaces[0].Name)
+	err := RevertMac(iface)
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	changed, err = MacChanged(ifaces[0].Name)
+	changed, err = MacChanged(iface)
 	if !changed {
-		fmt.Printf("RevertMac_1 result: MAC address successfully reverted for %s\n", ifaces[0].Name)
+		fmt.Printf("RevertMac_1 result: MAC address successfully reverted for %s\n", iface)
 	} else {
-		t.Errorf("RevertMac_1 error: MAC address not changed for %s\n", ifaces[0].Name)
+		t.Errorf("RevertMac_1 error: MAC address not changed for %s\n", iface)
 	}
 }
 
