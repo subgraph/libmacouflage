@@ -15,6 +15,7 @@ const SIOCSIFHWADDR = 0x8924
 const SIOCETHTOOL = 0x8946
 const ETHTOOL_GPERMADDR = 0x00000020
 const IFHWADDRLEN = 6
+var OuiDb []Oui
 
 type Mode struct {
 	name string
@@ -81,8 +82,7 @@ func init() {
 		fmt.Println(err)
 		return
 	}
-	var oui []Oui
-	err = json.Unmarshal(OuiData, &oui)
+	err = json.Unmarshal(OuiData, &OuiDb)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -302,4 +302,12 @@ func RunningAsRoot() (result bool, err error) {
 	return 
 }
 
+func FindAllPopularOuis() (matches []Oui, err error) {
+	for _, oui := range OuiDb {
+		if(oui.Popular) {
+			matches = append(matches, oui)
+		}
+	}
+	return
+}
 

@@ -249,3 +249,16 @@ func Test_RevertMac_1(t *testing.T) {
 	}
 }
 
+func Test_FindAllPopularOuis_1(t *testing.T) {
+	popular, err := FindAllPopularOuis()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, oui := range popular {
+		if(!oui.Popular) {
+			t.Errorf("FindAllPopularOuis_1 error, found erroneous oui: ", oui)
+			return
+		}
+	}
+}
