@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"net"
 	"unsafe"
-	"crypto/rand"
+	rand "crypto/rand"
 	"os/user"
 	"encoding/json"
 	"strings"
+	mathrand "math/rand"
+	"time"
 )
 
 const SIOCSIFHWADDR = 0x8924
@@ -224,6 +226,40 @@ func SpoofMacSameVendor(name string, bia bool) (changed bool, err error) {
 	return
 }
 
+func SpoofMacSameDeviceType(name string) (changed bool, err error) {
+	oldMac, err := GetCurrentMac(name)
+	if err != nil {
+		return
+	}
+	deviceType, err := FindDeviceTypeByMac(oldMac.String())
+	if err != nil {
+		return
+	}
+	vendors, err := FindAllVendorsByDeviceType(deviceType)
+	if err != nil {
+		return
+	}
+	mathrand.Seed(time.Now().UTC().UnixNano())
+	vendor := vendors[mathrand.Intn(len(vendors))]
+	macBytes, err := net.ParseMAC(vendor.VendorPrefix + ":00:00:00")
+	if err != nil {
+		return
+	}
+	newMac, err := RandomizeMac(macBytes, 3, true)
+	if err != nil {
+		return
+	}
+	err = SetMac(name, newMac.String())
+	if err != nil {
+		return
+	}
+	changed, err = MacChanged(name)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func CompareMacs(first net.HardwareAddr, second net.HardwareAddr) (same bool) {
 	same = first.String() == second.String()
 	return
@@ -313,6 +349,36 @@ func FindAllPopularOuis() (matches []Oui, err error) {
 			matches = append(matches, oui)
 		}
 	}
+	return
+}
+
+func FindDeviceTypeByMac(mac string) (deviceType string, err error) {
+	err = ValidateMac(mac)
+	if err != nil {
+		return
+	}
+	for _, oui := range OuiDb {
+		if(strings.EqualFold(oui.VendorPrefix, mac[:8])) {
+			deviceType = oui.Devices[0].DeviceType
+			return
+		}
+	}
+	// If vendor prefix is not in OuiDb, return type "Other"
+	deviceType = "Other"
+	return
+}
+
+func FindAllVendorsByDeviceType(deviceType string) (matches []Oui, err error) {
+	for _, oui := range OuiDb {
+		if(strings.EqualFold(deviceType, oui.Devices[0].DeviceType)) {
+			matches = append(matches, oui)
+		}
+	}
+	return
+}
+
+func ValidateMac(mac string) (err error) {
+	_, err = net.ParseMAC(mac)
 	return
 }
 

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"fmt"
 	"os"
+	"strings"
 )
 
 var testInterface = os.Getenv("TEST_INTERFACE")
@@ -237,6 +238,39 @@ func Test_SpoofMacSameVendor_1(t *testing.T) {
 	}
 }
 
+func Test_SpoofMacSameDeviceType_1(t *testing.T) {
+	iface := GetTestInterface()
+	oldMac, err := GetCurrentMac(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	oldDeviceType, err := FindDeviceTypeByMac(oldMac.String())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	_, err = SpoofMacSameDeviceType(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	newMac, err := GetCurrentMac(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	newDeviceType, err := FindDeviceTypeByMac(newMac.String())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if !(strings.EqualFold(oldDeviceType, newDeviceType)) {
+		t.Errorf("SpoofMacSameDeviceType_1 error - device mismatch between old (%s) and new (%s)",
+		oldDeviceType, newDeviceType)
+	}
+}
+
 func Test_RevertMac_1(t *testing.T) {
 	iface := GetTestInterface()
 	changed, _ := MacChanged(iface)
@@ -279,3 +313,41 @@ func Test_FindAllPopularOuis_1(t *testing.T) {
 		}
 	}
 }
+
+func Test_FindDeviceTypeByMac_1(t *testing.T) {
+	iface := GetTestInterface()
+	mac, err := GetCurrentMac(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	deviceType, err := FindDeviceTypeByMac(mac.String())
+	if err != nil {
+		t.Errorf("FindDeviceTypeByMac_1 error for device type %s: %s",
+			deviceType, err)
+		return
+	}
+}
+
+func Test_FindAllVendorsByDeviceType_1(t *testing.T) {
+	iface := GetTestInterface()
+	mac, err := GetCurrentMac(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	deviceType, err := FindDeviceTypeByMac(mac.String())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	vendors, err := FindAllVendorsByDeviceType(deviceType)
+	for _, vendor := range vendors {
+		if !(strings.EqualFold(vendor.Devices[0].DeviceType, deviceType)) {
+			t.Errorf("FindAllVendorByDeviceType_1 error with %s and device type: %s \n",
+			vendor.Vendor, deviceType)
+			return
+		}
+	}
+}
+
