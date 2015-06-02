@@ -260,6 +260,28 @@ func SpoofMacSameDeviceType(name string) (changed bool, err error) {
 	return
 }
 
+func SpoofMacAnyDeviceType(name string) (changed bool, err error) {
+	mathrand.Seed(time.Now().UTC().UnixNano())
+	vendor := OuiDb[mathrand.Intn(len(OuiDb))]
+	macBytes, err := net.ParseMAC(vendor.VendorPrefix + ":00:00:00")
+	if err != nil {
+		return
+	}
+	newMac, err := RandomizeMac(macBytes, 3, true)
+	if err != nil {
+		return
+	}
+	err = SetMac(name, newMac.String())
+	if err != nil {
+		return
+	}
+	changed, err = MacChanged(name)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func CompareMacs(first net.HardwareAddr, second net.HardwareAddr) (same bool) {
 	same = first.String() == second.String()
 	return
@@ -349,6 +371,21 @@ func FindAllPopularOuis() (matches []Oui, err error) {
 			matches = append(matches, oui)
 		}
 	}
+	return
+}
+
+func FindVendorByMac(mac string) (vendor Oui, err error) {
+	err = ValidateMac(mac)
+	if err != nil {
+		return
+	}
+	for _, oui := range OuiDb {
+		if(strings.EqualFold(oui.VendorPrefix, mac[:8])) {
+			vendor = oui
+			return
+		}
+	}
+	err = fmt.Errorf("No vendor found in OuiDb for vendor prefix: %s", mac[:8])
 	return
 }
 

@@ -22,10 +22,10 @@ func GetTestInterface() (iface string) {
 func Test_GetCurrentMac_1(t *testing.T) {
 	_, err := GetCurrentMac("badinterface")
 	if err == nil {
-		t.Errorf("GetCurrentMac_1 for non-existent interface name: %s\n",
+		t.Errorf("GetCurrentMac_1 error for non-existent interface name: %s\n",
 		err)
 	} else {
-		fmt.Printf("GetCurrentMac_1 for non-existent interface name: %s\n",
+		fmt.Printf("GetCurrentMac_1 result for non-existent interface name: %s\n",
 		err)
 	}
 }
@@ -271,6 +271,26 @@ func Test_SpoofMacSameDeviceType_1(t *testing.T) {
 	}
 }
 
+
+func Test_SpoofMacAnyDeviceType_1(t *testing.T) {
+	iface := GetTestInterface()
+	_, err := SpoofMacAnyDeviceType(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	newMac, err := GetCurrentMac(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	_, err = FindVendorByMac(newMac.String())
+	if err != nil {
+		t.Errorf("SpoofMacAnyDeviceType_1 error - cannot find vendor for new MAC", newMac)
+	}
+
+}
+
 func Test_RevertMac_1(t *testing.T) {
 	iface := GetTestInterface()
 	changed, _ := MacChanged(iface)
@@ -351,3 +371,20 @@ func Test_FindAllVendorsByDeviceType_1(t *testing.T) {
 	}
 }
 
+func Test_FindVendorByMac_1(t *testing.T) {
+	// Test against locally administered address, will not appear in OuiDb
+	mac := "06:00:00:00:00:00"
+	_, err := FindVendorByMac(mac)
+	if err == nil {
+		t.Errorf("FindVendorByMac_1 failed for locally administered address: ",
+		mac)
+	}
+}
+
+func Test_FindVendorByMac_2(t *testing.T) {
+	mac := "00:00:00:00:00:00"
+	_, err := FindVendorByMac(mac)
+	if err != nil {
+		t.Errorf("FindVendorByMac_2 failed for valid vendor MAC: %s", mac)
+	}
+}
