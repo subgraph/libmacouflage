@@ -46,8 +46,11 @@ $ sudo ip link set eth0 down
 Then run the tests (interface is specified via the TEST_INTERFACE environment
 variable):
 ```
-$ sudo TEST_INTERFACE=eth0 go test
+$ sudo TEST_INTERFACE=eth0 GOPATH=<your_gopath> go test
 ```
+
+NOTE: GOPATH should point to the GOPATH for your regular user account or
+dependencies such as the testify test-suite will not be found
 
 ### How to test with "any" network interface (test suite just chooses the first found)
 
@@ -58,6 +61,7 @@ $ sudo ip link set <interface> down
 
 Then run the tests:
 ```
-$ sudo go test
+$ sudo GOPATH=<your_gopath> go test
 ```
+
 
