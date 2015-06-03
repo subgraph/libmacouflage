@@ -286,9 +286,33 @@ func Test_SpoofMacAnyDeviceType_1(t *testing.T) {
 	}
 	_, err = FindVendorByMac(newMac.String())
 	if err != nil {
-		t.Errorf("SpoofMacAnyDeviceType_1 error - cannot find vendor for new MAC", newMac)
+		t.Errorf("SpoofMacAnyDeviceType_1 error - cannot find vendor for new MAC: %s",
+			newMac)
 	}
 
+}
+
+func Test_SpoofMacPopular_1(t *testing.T) {
+	iface := GetTestInterface()
+	_, err := SpoofMacPopular(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	newMac, err := GetCurrentMac(iface)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	vendor, err := FindVendorByMac(newMac.String())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if !vendor.Popular {
+		t.Errorf("SpoofMacPopular_1 error - vendor selected for new MAC is not in popular list: %s",
+		newMac)
+	}
 }
 
 func Test_RevertMac_1(t *testing.T) {

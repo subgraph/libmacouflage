@@ -261,12 +261,33 @@ func SpoofMacSameDeviceType(name string) (changed bool, err error) {
 }
 
 func SpoofMacAnyDeviceType(name string) (changed bool, err error) {
-	mathrand.Seed(time.Now().UTC().UnixNano())
-	vendor := OuiDb[mathrand.Intn(len(OuiDb))]
+	vendor := OuiDb[RandomInt(len(OuiDb))]
 	macBytes, err := net.ParseMAC(vendor.VendorPrefix + ":00:00:00")
 	if err != nil {
 		return
 	}
+	newMac, err := RandomizeMac(macBytes, 3, true)
+	if err != nil {
+		return
+	}
+	err = SetMac(name, newMac.String())
+	if err != nil {
+		return
+	}
+	changed, err = MacChanged(name)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func SpoofMacPopular(name string) (changed bool, err error) {
+	popular, err := FindAllPopularOuis()
+	if err != nil {
+		return
+	}
+	vendor := popular[RandomInt(len(popular))]
+	macBytes, err := net.ParseMAC(vendor.VendorPrefix + ":00:00:00")
 	newMac, err := RandomizeMac(macBytes, 3, true)
 	if err != nil {
 		return
@@ -339,14 +360,19 @@ func RandomizeMac(macbytes net.HardwareAddr, start int, bia bool) (mac net.Hardw
 	for i := start; i < 6; i++ {
 		buf := make([]byte, 1)
 		rand.Read(buf)
+
+		/* The LSB of first octet can not be set.  Those are musticast
+         * MAC addresses and not allowed for network device:
+         * x1:, x3:, x5:, x7:, x9:, xB:, xD: and xF:
+         */
 		if i == 0 {
-			macbytes[i] = buf[0] & 0xf
+			macbytes[i] = buf[0] & 0xfc
 		} else {
 			macbytes[i] = buf[0]
 		}
 	}
 	if bia {
-		macbytes[0] &= 2
+		macbytes[0] = macbytes[0]&^2
 	} else {
 		macbytes[0] |= 2
 	}
@@ -416,6 +442,12 @@ func FindAllVendorsByDeviceType(deviceType string) (matches []Oui, err error) {
 
 func ValidateMac(mac string) (err error) {
 	_, err = net.ParseMAC(mac)
+	return
+}
+
+func RandomInt(max int) (result int) {
+	mathrand.Seed(time.Now().UTC().UnixNano())
+	result = mathrand.Intn(max)
 	return
 }
 
