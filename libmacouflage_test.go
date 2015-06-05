@@ -220,7 +220,19 @@ func Test_FindVendorByMac_2(t *testing.T) {
 }
 
 func Test_FindVendorsByKeyword_1(t *testing.T) {
-	results,  err := FindVendorsByKeyword("intel")
+	results, err := FindVendorsByKeyword("intel")
 	assert.NoError(t,  err)
 	assert.NotEqual(t, 0, len(results))
+}
+
+func Test_FindVendorsByKeyword_2(t *testing.T) {
+	results, err := FindVendorsByKeyword("")
+	assert.NoError(t, err)
+	assert.NotEqual(t, 0, len(results))
+}
+
+func Test_FindVendorsByKeyword_3(t *testing.T) {
+	results, err := FindVendorsByKeyword("salkslfkdlfkdf8dfurewkjfiew8f9ewf")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(results))
 }
