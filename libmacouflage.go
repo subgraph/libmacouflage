@@ -440,6 +440,15 @@ func FindAllVendorsByDeviceType(deviceType string) (matches []Oui, err error) {
 	return
 }
 
+func FindVendorsByKeyword(keyword string) (matches []Oui, err error) {
+	for _, oui := range OuiDb {
+		if(strings.Contains(strings.ToLower(oui.Vendor), strings.ToLower(keyword))) {
+			matches = append(matches, oui)
+		}
+	}
+	return
+}
+
 func ValidateMac(mac string) (err error) {
 	_, err = net.ParseMAC(mac)
 	return

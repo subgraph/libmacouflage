@@ -4,7 +4,6 @@ import (
 	"testing"
 	"os"
 	"github.com/stretchr/testify/assert"
-
 )
 
 var testInterface = os.Getenv("TEST_INTERFACE")
@@ -218,4 +217,10 @@ func Test_FindVendorByMac_2(t *testing.T) {
 	mac := "00:00:00:00:00:00"
 	_, err := FindVendorByMac(mac)
 	assert.NoError(t, err)
+}
+
+func Test_FindVendorsByKeyword_1(t *testing.T) {
+	results,  err := FindVendorsByKeyword("intel")
+	assert.NoError(t,  err)
+	assert.NotEqual(t, 0, len(results))
 }
