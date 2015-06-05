@@ -210,8 +210,11 @@ func SpoofMacRandom(name string, bia bool) (changed bool, err error) {
 
 
 func SpoofMacSameVendor(name string, bia bool) (changed bool, err error) {
-	bytes := []byte{0, 0, 0, 0, 0, 0}
-	mac, err := RandomizeMac(bytes, 3, bia)
+	oldMac, err := GetCurrentMac(name)
+	if err != nil {
+		return
+	}
+	mac, err := RandomizeMac(oldMac, 3, bia)
 	if err != nil {
 		return
 	}

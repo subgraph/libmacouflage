@@ -117,6 +117,20 @@ func Test_SpoofMacSameVendor_1(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func Test_SpoofMacSameVendor_2(t *testing.T) {
+	iface := GetTestInterface()
+	oldMac, err := GetCurrentMac(iface)
+	assert.NoError(t, err)
+	_, err = SpoofMacSameVendor(iface, true)
+	assert.NoError(t, err)
+	newMac, err := GetCurrentMac(iface)
+	assert.NoError(t, err)
+	if err == nil {
+		assert.Equal(t, oldMac[:3], newMac[:3])
+		assert.NotEqual(t, oldMac[4:], newMac[4:])
+	}
+}
+
 func Test_SpoofMacSameDeviceType_1(t *testing.T) {
 	iface := GetTestInterface()
 	oldMac, err := GetCurrentMac(iface)
