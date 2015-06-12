@@ -57,6 +57,10 @@ type Device struct {
 	DeviceName string	`json:"device_name"`
 }
 
+type NoVendorError struct {
+	msg string
+}
+
 func init() {
 	Modes := make(map[string]Mode)
 	Modes["SPECIFIC"] = Mode{"Specific",
@@ -403,6 +407,10 @@ func FindAllPopularOuis() (matches []Oui, err error) {
 	return
 }
 
+func (e NoVendorError) Error() string {
+	return e.msg
+}
+
 func FindVendorByMac(mac string) (vendor Oui, err error) {
 	err = ValidateMac(mac)
 	if err != nil {
@@ -414,7 +422,8 @@ func FindVendorByMac(mac string) (vendor Oui, err error) {
 			return
 		}
 	}
-	err = fmt.Errorf("No vendor found in OuiDb for vendor prefix: %s", mac[:8])
+	msg := fmt.Sprintf("No vendor found in OuiDb for vendor prefix: %s", mac[:8])
+	err = NoVendorError{msg}
 	return
 }
 

@@ -233,6 +233,12 @@ func Test_FindVendorByMac_2(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func Test_FindVendorByMac_3(t *testing.T) {
+	mac := "06:00:00:00:00:00"
+	_, err := FindVendorByMac(mac)
+	assert.Equal(t, err, err.(NoVendorError), "err is not of type NoVendorError")
+}
+
 func Test_FindVendorsByKeyword_1(t *testing.T) {
 	results, err := FindVendorsByKeyword("intel")
 	assert.NoError(t,  err)
