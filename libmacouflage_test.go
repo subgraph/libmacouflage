@@ -256,3 +256,8 @@ func Test_FindVendorsByKeyword_3(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(results))
 }
+
+func Test_IsInterfaceTypeInvalid_1(t *testing.T) {
+	result := IsInterfaceTypeInvalid("lo")
+	assert.True(t, result)
+}

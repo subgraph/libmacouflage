@@ -12,6 +12,7 @@ import (
 	"strings"
 	mathrand "math/rand"
 	"time"
+	"regexp"
 )
 
 const SIOCSIFHWADDR = 0x8924
@@ -19,6 +20,10 @@ const SIOCETHTOOL = 0x8946
 const ETHTOOL_GPERMADDR = 0x00000020
 const IFHWADDRLEN = 6
 var OuiDb []Oui
+
+const (
+	invalidInterfaceRegexp = "^(lo|br|veth|tun|tap).*$"
+)
 
 type Mode struct {
 	name string
@@ -61,6 +66,10 @@ type NoVendorError struct {
 	msg string
 }
 
+type InvalidInterfaceTypeError struct {
+	msg string
+}
+
 func init() {
 	Modes := make(map[string]Mode)
 	Modes["SPECIFIC"] = Mode{"Specific",
@@ -97,6 +106,11 @@ func init() {
 }
 
 func GetCurrentMac(name string) (mac net.HardwareAddr, err error) {
+	if IsInterfaceTypeInvalid(name) {
+		msg := fmt.Sprintf("Invalid interface type: %s", name)
+		err = InvalidInterfaceTypeError{msg}
+		return
+	}
 	iface, err := net.InterfaceByName(name)
 	if err != nil {
 		return
@@ -117,19 +131,21 @@ func GetAllCurrentMacs() (macs map[string]string, err error) {
 func GetInterfaces() (ifaces []net.Interface, err error) {
 	allIfaces, err := net.Interfaces()
 	for _, iface := range allIfaces {
-		// Skip tun and tap interfaces
-		if strings.HasPrefix(iface.Name, "tun") || strings.HasPrefix(iface.Name, "tap") {
+		// Skip invalid interfaces
+		if IsInterfaceTypeInvalid(iface.Name) {
 			continue
 		}
-		// Skip Loopback interfaces
-		if iface.Flags&net.FlagLoopback == 0 {
-			ifaces = append(ifaces, iface)
-		}
+		ifaces = append(ifaces, iface)
 	}
 	return
 }
 
 func GetPermanentMac(name string) (mac net.HardwareAddr, err error) {
+	if IsInterfaceTypeInvalid(name) {
+		msg := fmt.Sprintf("Invalid interface type: %s", name)
+		err = InvalidInterfaceTypeError{msg}
+		return
+	}
 	sockfd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
 	defer syscall.Close(sockfd)
 	var ifr ifreq
@@ -160,7 +176,12 @@ func GetAllPermanentMacs() (macs map[string]string, err error) {
 }
 
 func SetMac(name string, mac string) (err error) {
-	result, err := RunningAsRoot() 
+	if IsInterfaceTypeInvalid(name) {
+		msg := fmt.Sprintf("Invalid interface type: %s", name)
+		err = InvalidInterfaceTypeError{msg}
+		return
+	}
+	result, err := RunningAsRoot()
 	if err != nil {
 		return
 	}
@@ -407,6 +428,10 @@ func FindAllPopularOuis() (matches []Oui, err error) {
 	return
 }
 
+func (e InvalidInterfaceTypeError) Error() string {
+	return e.msg
+}
+
 func (e NoVendorError) Error() string {
 	return e.msg
 }
@@ -463,6 +488,11 @@ func FindVendorsByKeyword(keyword string) (matches []Oui, err error) {
 
 func ValidateMac(mac string) (err error) {
 	_, err = net.ParseMAC(mac)
+	return
+}
+
+func IsInterfaceTypeInvalid(name string) (result bool) {
+	result = regexp.MustCompile(invalidInterfaceRegexp).MatchString(name)
 	return
 }
 
