@@ -22,7 +22,7 @@ const IFHWADDRLEN = 6
 var OuiDb []Oui
 
 const (
-	invalidInterfaceRegexp = "^(lo|br|veth|tun|tap).*$"
+	invalidInterfaceRegexp = "^(lo|br|veth|tun|tap|oz|voz).*$"
 )
 
 type Mode struct {
