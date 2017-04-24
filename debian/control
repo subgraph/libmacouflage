@@ -1,0 +1,19 @@
+Source: libmacouflage
+Section: admin
+Priority: optional
+Maintainer: Alexsandr Kibal <ak@subgraph.com>
+Build-Depends: debhelper (>= 9),
+               dh-golang,
+               dh-systemd,
+               golang-go,
+               golang-github-stretchr-testify-dev
+Standards-Version: 3.9.8
+Homepage: https://www.github.com/subgraph/libmacouflage
+
+Package: golang-subgraph-libmacouflage-dev
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: golang
+Description: libmacouflage golang library
+ Subgraph libmacouflage golang development library
+ .
